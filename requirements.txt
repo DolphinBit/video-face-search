@@ -1,0 +1,7 @@
+insightface==1.0.1
+opencv-python==4.13.0.92
+torch==2.12.0
+torchvision==0.27.0
+numpy
+PyQt6>=6.5
+pytest
