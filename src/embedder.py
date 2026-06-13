@@ -1,5 +1,6 @@
 """人脸嵌入提取模块 — 基于 InsightFace"""
 import numpy as np
+import cv2
 from insightface.app import FaceAnalysis
 
 
@@ -31,7 +32,6 @@ class FaceEmbedder:
         Raises:
             FaceEmbedderError: 文件不存在或读取失败
         """
-        import cv2
         img = cv2.imread(image_path)
         if img is None:
             raise FaceEmbedderError(f"无法读取图片: {image_path}")
@@ -43,14 +43,14 @@ class FaceEmbedder:
         best = max(faces, key=lambda f: f.det_score)
         return best.embedding.copy()
 
-    def extract_from_array(self, img: np.ndarray) -> list:
+    def extract_from_array(self, img: np.ndarray) -> list[dict]:
         """从 numpy 图像数组提取所有人脸的嵌入向量。
 
         Args:
             img: BGR 格式的 numpy 数组 (H, W, 3)
 
         Returns:
-            [{"bbox", "embedding", "det_score"}, ...] 列表
+            字典列表，每项包含 keys: bbox, embedding, det_score
         """
         faces = self.model.get(img)
         results = []
