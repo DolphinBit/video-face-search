@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from src.scanner import VideoScanner, ScanResult
 
 
@@ -30,11 +31,8 @@ class TestVideoScanner:
     def test_scan_nonexistent_file_raises(self):
         """不存在的视频文件应抛出异常"""
         scanner = VideoScanner()
-        try:
+        with pytest.raises(FileNotFoundError):
             scanner.scan("/nonexistent/video.mp4")
-            assert False, "应抛出异常"
-        except FileNotFoundError:
-            pass
 
     def test_frame_interval_respected(self, test_video_path):
         """帧采样间隔应正确生效"""

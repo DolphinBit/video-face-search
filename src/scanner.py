@@ -1,4 +1,5 @@
 """视频扫描模块 — 抽帧 + 人脸检测 + 嵌入提取"""
+from collections.abc import Callable
 from dataclasses import dataclass
 import numpy as np
 import cv2
@@ -22,8 +23,8 @@ class VideoScanner:
     def scan(
         self,
         video_path: str,
-        progress_callback: callable = None,
-        cancel_flag: callable = None,
+        progress_callback: Callable[[int, str], None] | None = None,
+        cancel_flag: Callable[[], bool] | None = None,
     ) -> list[ScanResult]:
         """扫描视频，返回所有检测到的人脸的嵌入向量。"""
         cap = cv2.VideoCapture(video_path)
