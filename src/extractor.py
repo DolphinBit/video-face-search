@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 
 
+class SegmentExtractorError(Exception):
+    """视频截取异常"""
+    pass
+
+
 class SegmentExtractor:
     """使用 ffmpeg 截取视频段落"""
 
@@ -13,7 +18,7 @@ class SegmentExtractor:
         segments: list[tuple[int, int, float]],
         output_dir: str,
     ) -> list[str]:
-        """截取视频段落，保存为独立 mp4 文件。
+        """截取视频段落，保存为独立 mp4 文件，同时生成 result.json。
 
         Args:
             video_path: 源视频路径
@@ -22,6 +27,9 @@ class SegmentExtractor:
 
         Returns:
             生成的 mp4 文件路径列表
+
+        Raises:
+            SegmentExtractorError: ffmpeg 执行失败
         """
         out = Path(output_dir)
         seg_dir = out / "segments"
@@ -31,6 +39,11 @@ class SegmentExtractor:
         result_meta = []
 
         for i, (start_ms, end_ms, sim) in enumerate(segments, start=1):
+            if end_ms <= start_ms:
+                raise ValueError(
+                    f"段落 {i}: end_ms({end_ms}) 必须大于 start_ms({start_ms})"
+                )
+
             filename = f"segment_{i:03d}.mp4"
             output_path = seg_dir / filename
 
@@ -46,7 +59,12 @@ class SegmentExtractor:
                 "-avoid_negative_ts", "make_zero",
                 str(output_path),
             ]
-            subprocess.run(cmd, capture_output=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, check=False)
+            if result.returncode != 0:
+                stderr = result.stderr.decode("utf-8", errors="replace")
+                raise SegmentExtractorError(
+                    f"ffmpeg 截取段落 {i} 失败: {stderr[-500:]}"
+                )
 
             result_paths.append(str(output_path))
             result_meta.append({
